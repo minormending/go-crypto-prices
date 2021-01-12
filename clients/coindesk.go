@@ -1,4 +1,4 @@
-package sources
+package clients
 
 import (
 	"encoding/json"

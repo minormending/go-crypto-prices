@@ -1,4 +1,4 @@
-package sources
+package clients
 
 // Coin is a unified identifier across stores for a coin.
 type Coin string
