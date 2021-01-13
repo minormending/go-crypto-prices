@@ -1,9 +1,7 @@
 package clients
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"strings"
 	"time"
 )
@@ -19,23 +17,16 @@ const (
 )
 
 // BlockChainPrice returns the current price in the specified currency
-func BlockChainPrice(coin BlockChainCoinType, currency string) (*CoinPrice, error) {
+func BlockChainPrice(server HTTPCoinServer, coin BlockChainCoinType, currency string) (*CoinPrice, error) {
 	currency = strings.ToUpper(currency)
-	url := fmt.Sprintf(blockchainURI, coin, currency)
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to get price from Blockchain: %v", err)
-	}
-	defer res.Body.Close()
-
-	type wrapperJSON struct {
+	resWrapper := struct {
 		Symbol string  `json:"symbol"`
 		Price  float64 `json:"last_trade_price"`
-	}
-
-	var resWrapper wrapperJSON
-	if err := json.NewDecoder(res.Body).Decode(&resWrapper); err != nil {
-		return nil, fmt.Errorf("unable to parse response: %s", err)
+	}{}
+	url := fmt.Sprintf(blockchainURI, coin, currency)
+	err := server.Get(url, &resWrapper)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get price from Blockchain: %v", err)
 	}
 
 	var coinID Coin

@@ -1,9 +1,7 @@
 package clients
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 const coindeskURI = "https://api.coindesk.com/v1/%s/currentprice.json"
@@ -17,31 +15,24 @@ const (
 )
 
 // CoinDeskPrice returns the current price in the specified currency
-func CoinDeskPrice(coin CoinDeskCoinType, currency string) (*CoinPrice, error) {
-	url := fmt.Sprintf(coindeskURI, coin)
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("Unable to get price from CoinDesk: %v", err)
-	}
-	defer res.Body.Close()
-
+func CoinDeskPrice(server HTTPCoinServer, coin CoinDeskCoinType, currency string) (*CoinPrice, error) {
 	type priceJSON struct {
 		Currency            string  `json:"code"`
 		CurrencySymbol      string  `json:"symbol"`
 		CurrencyDescription string  `json:"description"`
 		Price               float64 `json:"rate_float"`
 	}
-
-	type wrapperJSON struct {
+	resWrapper := struct {
 		Time       map[string]string    `json:"time"`
 		Disclaimer string               `json:"disclaimer"`
 		CoinName   string               `json:"chartName"`
 		Bitcoin    map[string]priceJSON `json:"bpi,omitempty"`
-	}
+	}{}
 
-	var resWrapper wrapperJSON
-	if err := json.NewDecoder(res.Body).Decode(&resWrapper); err != nil {
-		return nil, fmt.Errorf("unable to parse response: %s", err)
+	url := fmt.Sprintf(coindeskURI, coin)
+	err := server.Get(url, &resWrapper)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get price from CoinDesk: %v", err)
 	}
 
 	var coinID Coin

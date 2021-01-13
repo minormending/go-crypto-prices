@@ -15,3 +15,8 @@ type CoinPrice struct {
 	Currency  string
 	Price     float64
 }
+
+// HTTPCoinServer provides an interface to mock
+type HTTPCoinServer interface {
+	Get(url string, j interface{}) error
+}

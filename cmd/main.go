@@ -3,17 +3,18 @@ package main
 import (
 	"fmt"
 
-	"github.com/minormending/coin-prices/sources"
+	"github.com/minormending/coin-prices/clients"
 )
 
 func main() {
-	price, err := sources.CoinDeskPrice(sources.CoinDeskBitcoinID, "USD")
+	server := clients.HTTPCrypto{}
+	price, err := clients.CoinDeskPrice(&server, clients.CoinDeskBitcoinID, "USD")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(price)
 
-	price, err = sources.BlockChainPrice(sources.BlockChainBitcoinID, "USD")
+	price, err = clients.BlockChainPrice(&server, clients.BlockChainBitcoinID, "USD")
 	if err != nil {
 		panic(err)
 	}
