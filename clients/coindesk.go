@@ -16,27 +16,15 @@ const (
 
 // CoinDeskPrice returns the current price in the specified currency
 func CoinDeskPrice(server HTTPCoinServer, coin CoinDeskCoinType, currency string) (*CoinPrice, error) {
-	type priceJSON struct {
-		Currency            string  `json:"code"`
-		CurrencySymbol      string  `json:"symbol"`
-		CurrencyDescription string  `json:"description"`
-		Price               float64 `json:"rate_float"`
-	}
-	resWrapper := struct {
-		Time       map[string]string    `json:"time"`
-		Disclaimer string               `json:"disclaimer"`
-		CoinName   string               `json:"chartName"`
-		Bitcoin    map[string]priceJSON `json:"bpi,omitempty"`
-	}{}
-
 	url := fmt.Sprintf(coindeskURI, coin)
-	err := server.Get(url, &resWrapper)
+	res, err := server.Get(url, coindeskResponse{})
 	if err != nil {
 		return nil, fmt.Errorf("unable to get price from CoinDesk: %v", err)
 	}
 
+	resWrapper := res.(*coindeskResponse)
 	var coinID Coin
-	var coinPrices map[string]priceJSON
+	var coinPrices map[string]coindeskPriceResponse
 	switch coin {
 	case CoinDeskBitcoinID:
 		coinID = CoinBitcoin
@@ -57,4 +45,18 @@ func CoinDeskPrice(server HTTPCoinServer, coin CoinDeskCoinType, currency string
 		Price:     currencyPrice.Price,
 	}
 	return &coinPrice, nil
+}
+
+type coindeskResponse struct {
+	Time       map[string]string                `json:"time"`
+	Disclaimer string                           `json:"disclaimer"`
+	CoinName   string                           `json:"chartName"`
+	Bitcoin    map[string]coindeskPriceResponse `json:"bpi,omitempty"`
+}
+
+type coindeskPriceResponse struct {
+	Currency            string  `json:"code"`
+	CurrencySymbol      string  `json:"symbol"`
+	CurrencyDescription string  `json:"description"`
+	Price               float64 `json:"rate_float"`
 }

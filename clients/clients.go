@@ -18,5 +18,5 @@ type CoinPrice struct {
 
 // HTTPCoinServer provides an interface to mock
 type HTTPCoinServer interface {
-	Get(url string, j interface{}) error
+	Get(url string, j interface{}) (interface{}, error)
 }
